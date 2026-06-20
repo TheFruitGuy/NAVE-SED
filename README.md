@@ -1,4 +1,8 @@
-# NAVE -- Normalized, Adaptive Conformer for Whale Vocalization-Event Detection
+<p align="center">
+  <img src="nave_logo.svg" alt="NAVE Conformer Wave Logo" width="600">
+</p>
+
+# NAVE &mdash; Normalized, Adaptive Conformer for Whale Vocalization-Event Detection
 
 Clean, hardcoded implementation of the locked conformer recipe for BioDCASE 2026
 Task 2 (3-class Antarctic baleen-whale SED: BMABZ / D / BP). Single-model dev
