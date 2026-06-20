@@ -1,60 +1,57 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 200" width="100%" height="100%" style="background-color: transparent;">
-  
-  <path 
-    d="
-      M 15 160 
-      C 25 160, 30 160, 40 160 
-      
-      L 40 60 L 46 60 L 46 160 L 52 160 L 52 60 
-      
-      C 65 60, 75 110, 81 110 
-      C 87 110, 95 160, 110 160 
-      
-      L 110 60 L 116 60 L 116 160 L 122 160 L 122 60 
-      
-      C 135 60, 145 160, 160 160 
-      
-      L 160 60 L 166 60 L 166 160 L 172 160 L 172 60 
-      
-      C 180 60, 190 60, 200 60 
-      
-      L 200 110 
-      
-      C 190 120, 180 120, 172 110 
-      C 180 100, 190 100, 200 110 
-      
-      L 200 160 L 206 160 L 206 60 L 212 60 L 212 160 
-      
-      C 225 160, 235 60, 250 60 
-      
-      L 250 160 L 256 160 L 256 60 L 262 60 L 262 160 
-      
-      C 275 160, 280 110, 281 110 
-      C 285 110, 290 60, 300 60 
-      
-      L 300 160 L 306 160 L 306 60 L 312 60 L 312 160 L 318 160 L 318 60 
-      
-      C 330 60, 340 60, 350 60 
-      
-      L 350 160 L 356 160 L 356 60 L 362 60 L 362 160 
-      
-      C 375 160, 385 170, 400 160 
-      C 385 150, 375 120, 362 110 
-      C 375 110, 380 120, 390 110 
-      C 380 100, 370 70, 362 60 
-      C 375 60, 385 70, 400 60 
-      
-      C 410 50, 420 110, 440 110 
-      C 460 110, 470 160, 500 160
-    " 
-    fill="none" 
-    stroke="#ffffff" 
-    stroke-width="3.5" 
-    stroke-linecap="round" 
-    stroke-linejoin="round"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="100%" height="100%">
+  <style>
+    .logo-path {
+      fill: none;
+      stroke: #FFFFFF;
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .logo-text {
+      fill: #FFFFFF;
+      font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+    }
+  </style>
 
-  <text x="260" y="195" font-family="monospace, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="5">
-    CONFORMER
-  </text>
+  <path class="logo-path" d="
+    M 50 180
+    C 75 180, 80 145, 95 145
+    C 105 145, 100 160, 95 160
+    C 90 160, 95 180, 115 180
+    C 140 180, 145 80, 170 80
+    C 190 80, 180 110, 165 110
+    C 150 110, 160 180, 195 180
+    C 215 180, 220 145, 235 145
+    C 245 145, 240 160, 235 160
+    C 230 160, 235 180, 250 180
+  "/>
+
+  <path class="logo-path" d="
+    M254 90 L254 180 M262 95 L262 180
+    M270 100 L270 140 M278 115 L278 155 M286 130 L286 170 M294 145 L294 180 M302 160 L302 180
+    M310 40 L310 180 M318 60 L318 180 M326 80 L326 180
+
+    M342 160 L342 180 M350 140 L350 180 M358 120 L358 180
+    M366 100 L366 135 M366 165 L366 180
+    M374 80 L374 135 M374 165 L374 180
+    M382 70 L382 135 M382 165 L382 180
+    M390 80 L390 135 M390 165 L390 180
+    M398 100 L398 135 M398 165 L398 180
+    M406 120 L406 180 M414 140 L414 180 M422 160 L422 180
+
+    M438 80 L438 130 M446 100 L446 150 M454 120 L454 170 M462 140 L462 180
+    M470 120 L470 170 M478 100 L478 150 M486 80 L486 130
+
+    M502 70 L502 180 M510 85 L510 180
+    M518 90 L518 105 M518 130 L518 145 M518 165 L518 180
+    M526 90 L526 105 M526 130 L526 145 M526 165 L526 180
+    M534 90 L534 105 M534 130 L534 145 M534 165 L534 180
+    M542 90 L542 105 M542 165 L542 180
+    M550 90 L550 105 M550 165 L550 180
+  "/>
+
+  <text x="300" y="240" class="logo-text" text-anchor="middle">CONFORMER</text>
 </svg>
