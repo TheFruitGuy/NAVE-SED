@@ -1,0 +1,188 @@
+"""
+NAVE -- Normalized, Adaptive Conformer for Whale Vocalization-Event Detection
+=============================================================================
+Configuration: the single source of truth for every NAVE constant. Every other
+``nave_*`` module imports this as ``cfg``.
+
+Name mapping: N = Normalized (PCEN channel), A = Adaptive (frequency-dynamic
+FDY convolutions in the stem), Conformer backbone, for whale Vocalization-Event
+detection.
+"""
+
+import os
+from pathlib import Path
+
+# ----------------------------------------------------------------------
+# Data
+# ----------------------------------------------------------------------
+# Point NAVE at the BioDCASE development set. Override without editing this file
+# by exporting NAVE_DATA_ROOT=/path/to/2026_BioDCASE_development_set.
+DATA_ROOT = Path(os.environ.get("NAVE_DATA_ROOT", "./2026_BioDCASE_development_set"))
+OUTPUT_DIR = Path("./runs")
+
+TRAIN_DATASETS = [
+    "ballenyislands2015", "casey2014", "elephantisland2013", "elephantisland2014",
+    "greenwich2015", "kerguelen2005", "maudrise2014", "rosssea2014",
+]
+VAL_DATASETS = ["casey2017", "kerguelen2014", "kerguelen2015"]
+# Quarantined blind test sites (never imported into train/val; inference only).
+TEST_DATASETS = ["kerguelen2020", "ddu2021"]
+
+# ----------------------------------------------------------------------
+# Front end (phase-aware STFT + PCEN channel)
+# ----------------------------------------------------------------------
+SAMPLE_RATE = 250
+N_FFT = 256
+WIN_LENGTH = 256
+HOP_LENGTH = 5
+FRAME_STRIDE_S = 0.02            # 20 ms / frame (HOP_LENGTH / SAMPLE_RATE)
+NORM_FEATURES = "demean"        # per-frequency complex mean subtraction (ch 0-2)
+DUAL_RESOLUTION = False         # NAVE uses the single-resolution 3-ch base + PCEN
+
+# Fixed, non-trainable PCEN (4th channel). Gain/bias/power (alpha/delta/power)
+# match the librosa.pcen defaults; the smoothing s=0.025 is the paper's value
+# (librosa's default is b ~= 0.049 at SR=250 / hop=5).
+PCEN_ALPHA = 0.98
+PCEN_DELTA = 2.0
+PCEN_POWER = 0.5
+PCEN_SMOOTH = 0.025
+PCEN_EPS = 1e-6
+PCEN_EMA_TAPS = 512
+
+FEAT_CHANNELS = 4               # [demeaned |S|, cos phi, sin phi, PCEN]
+
+# ----------------------------------------------------------------------
+# Classes (7 fine -> 3 coarse). NAVE trains directly on the 3 coarse classes.
+# ----------------------------------------------------------------------
+CALL_TYPES_7 = ["bma", "bmb", "bmz", "bmd", "bpd", "bp20", "bp20plus"]
+CALL_TYPES_3 = ["bmabz", "d", "bp"]
+N_CLASSES = 3
+COLLAPSE_MAP = {
+    "bma": "bmabz", "bmb": "bmabz", "bmz": "bmabz",
+    "bmd": "d", "bpd": "d",
+    "bp20": "bp", "bp20plus": "bp",
+}
+# Mutable global: the post-processing path flips this True while it labels
+# detections in the coarse space, then restores it. Shared module object, so
+# the toggle is observed everywhere consistently.
+USE_3CLASS = True
+
+# ----------------------------------------------------------------------
+# Segmentation / collar
+# ----------------------------------------------------------------------
+TRAIN_SEGMENT_S = 30.0
+EVAL_SEGMENT_S = 30.0            # default for in-training val + the eval CLIs; the
+                                # reported/paper inference uses 60 s tiling -- pass
+                                # --segment-s 60 (both .sh scripts default EVAL_SEG=60)
+EVAL_OVERLAP_S = 2.0
+COLLAR_MIN_S = 1.0
+COLLAR_MAX_S = 5.0
+MIN_CALL_DURATION_S = 0.5
+MAX_CALL_DURATION_S = 30.0
+NEG_RATIO = 1.0                 # negatives per positive segment, resampled / epoch
+
+# ----------------------------------------------------------------------
+# Stem (WhaleVAD CNN feature extractor, inherited)
+# ----------------------------------------------------------------------
+FILTERBANK_OUT_CH = 64
+FEAT_EXTRACTOR_CH = 128
+BOTTLENECK_CH = 64
+BOTTLENECK_DROPOUT = 0.1
+AGG_DROPOUT = 0.2
+
+# ----------------------------------------------------------------------
+# NAVE architecture
+# ----------------------------------------------------------------------
+FDY_TARGETS = ("filterbank", "feat0")   # descriptive only: the FDY wiring is
+                                        # hardcoded in NAVEStem (gated on USE_FDY);
+                                        # editing this tuple has no effect
+FDY_BASIS = 4                           # K basis kernels
+FDY_TEMP = 1.0                          # attention softmax temperature
+
+D_MODEL = 128
+NHEAD = 4
+NUM_LAYERS = 4
+FFN_MULT = 4
+CONV_KERNEL = 153                       # wide depthwise kernel (RF ~3.06 s; reported model)
+DROPOUT = 0.1
+
+# ----------------------------------------------------------------------
+# Ablation switches (full NAVE = all on). nave_train sets these from the CLI
+# before the model is built; nave_evaluate restores them from the checkpoint's
+# stored config so an ablated model rebuilds with the matching architecture.
+# ----------------------------------------------------------------------
+USE_PCEN = True                 # 4th PCEN channel; off -> 3-ch base front end
+USE_FDY = True                  # frequency-dynamic stem convs; off -> plain Conv2d
+
+# ----------------------------------------------------------------------
+# Training
+# ----------------------------------------------------------------------
+OPTIMIZER = "radam"             # plain RAdam, constant LR, no warmup
+EPOCHS = 40
+BATCH_SIZE = 32
+LR = 5e-5
+WEIGHT_DECAY = 1e-3
+BETA1 = 0.9
+BETA2 = 0.999
+GRAD_CLIP = 1.0
+EMA_DECAY = 0.999               # EMA-of-weights teacher (validated + checkpointed)
+RESAMPLE_EVERY = 1              # resample the negative pool every N epochs
+SEED = 42
+NUM_WORKERS = 16
+SELECT_BY = "macro"             # checkpoint selection metric (tuned macro F1)
+POS_WEIGHT = None               # unused: the per-class pos_weight (w_c = N / P_c) is
+                                # computed at runtime by compute_pos_weight() and applied
+                                # to both the train and val BCE -- runs are never unweighted
+
+# ----------------------------------------------------------------------
+# Post-processing (structural params fixed; only per-class thresholds tuned)
+# ----------------------------------------------------------------------
+THRESHOLD = 0.3                 # fixed-threshold baseline; tuned per class at eval
+SMOOTH_KERNEL_MS = 500          # temporal median filter on probabilities
+MERGE_GAP_S = 0.5               # merge same-class events closer than this
+POST_MIN_DUR_S = 0.5
+POST_MAX_DUR_S = 30.0
+IOU_THRESHOLD = 0.3             # event-matching IoU for metrics
+
+def n_classes() -> int:
+    return N_CLASSES
+
+
+def n_feat_channels() -> int:
+    return FEAT_CHANNELS
+
+
+def class_names() -> list[str]:
+    """Ordered class labels currently in use. NAVE uses the 3 coarse classes
+    (``USE_3CLASS`` is always True); the 7-class branch is kept only so the
+    shared post-processing helpers stay general."""
+    return list(CALL_TYPES_3) if USE_3CLASS else list(CALL_TYPES_7)
+
+
+def class_to_idx() -> dict[str, int]:
+    """Mapping from class name to zero-based output index."""
+    return {c: i for i, c in enumerate(class_names())}
+
+
+def apply_ablation(use_pcen: bool = True, use_fdy: bool = True,
+                   conv_kernel: "int | None" = None) -> None:
+    """Set the ablation switches consistently. MUST run before building
+    ``NAVE()`` / ``NAVEFeatureExtractor()``. Keeps ``FEAT_CHANNELS`` in sync with
+    ``USE_PCEN`` so the stem input width and the feature extractor agree."""
+    global USE_PCEN, USE_FDY, FEAT_CHANNELS, CONV_KERNEL
+    USE_PCEN = bool(use_pcen)
+    USE_FDY = bool(use_fdy)
+    FEAT_CHANNELS = 4 if USE_PCEN else 3
+    if conv_kernel is not None:
+        CONV_KERNEL = int(conv_kernel)
+
+
+def ablation_config() -> dict:
+    """Current ablation switches, for stamping into a checkpoint."""
+    return {"use_pcen": USE_PCEN, "use_fdy": USE_FDY,
+            "conv_kernel": CONV_KERNEL, "feat_channels": FEAT_CHANNELS}
+
+
+def ablation_tag() -> str:
+    """Compact identifier for the active ablation config (run-dir naming)."""
+    return f"pcen{int(USE_PCEN)}_fdy{int(USE_FDY)}_k{CONV_KERNEL}"
